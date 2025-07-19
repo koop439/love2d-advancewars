@@ -140,5 +140,3 @@ function draw_spawnable_tiles(valid_tiles)
 		love.graphics.draw(img, tiler.quad, (tile.x - 1) * map.tilewidth, (tile.y - 1) * map.tilewidth)
 	end
 end
-
-

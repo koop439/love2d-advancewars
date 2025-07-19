@@ -1,4 +1,4 @@
-local active_units = {}
+active_units = {}
 
 local unit_mt = {}
 unit_mt.__index = unit_mt
@@ -7,16 +7,15 @@ function unit_mt:new(x, y, sprite, draw_fn, update_fn)
   local obj = {
     x = x,
     y = y,
-    sprite = sprite,
+    sprite = sprite, -- could be the GID or tile data
     draw = draw_fn,
     update = update_fn,
   }
   return setmetatable(obj, unit_mt)
 end
 
-function active_units.spawn(unit, x, y)
-  unit.x = x
-  unit.y = y
+function active_units.spawn(troop, x, y)
+  local unit = unit_mt:new(x, y, troop.sprite, troop.draw, troop.update)
   table.insert(active_units, unit)
 end
 

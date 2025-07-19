@@ -1,28 +1,19 @@
 local cursor = require("mechanics/cursor_movement")
-local map = require("maps.Tutorial") -- Adjust this if needed
 
-local troops = {}
-
-troops.clone = function(troop)
-  local new = {}
-  for k, v in pairs(troop) do
-    new[k] = v
-  end
-  return new
-end
+troops = {}
 
 troops.shotgun = {
-  health = 3,
-  damage = 2,
-  range = 1,
-  movement = 2,
-  selected = false,
-  color = nil,
-  gid = 107,
-  cost = 100,
-  spawn = function(self, color)
+
+    health = 3,
+    damage = 2,
+    range = 1,
+    movement = 2,
+    selected = false,
+    color = nil,
+    gid = 106,
+    spawn = function(self, color)
     if color == "gray" then
-      self.gid = 107
+      self.gid = 106
     elseif color == "green" then
       self.gid = 124
     elseif color == "blue" then
@@ -32,12 +23,14 @@ troops.shotgun = {
     elseif color == "yellow" then
       self.gid = 178
     end
-
-    -- Drawing is done elsewhere, so this can stay empty or setup something else
-  end,
+    
+  local tile = map.tiles[self.gid]
+	local img = map.tilesets[tile.tileset].image
+  love.graphics.draw(img, tile.quad, cursor.tileX,cursor.tileY) 
+  end,  
   draw_temp = function(self, color)
-    if color == "gray" then
-      self.gid = 107
+ if color == "gray" then
+      self.gid = 106
     elseif color == "green" then
       self.gid = 124
     elseif color == "blue" then
@@ -47,22 +40,76 @@ troops.shotgun = {
     elseif color == "yellow" then
       self.gid = 178
     end
-    -- drawing handled elsewhere
-  end,
-  draw = function(self)
-    local tile = map.tiles[self.gid]
-    if tile then
-      local img = map.tilesets[tile.tileset].image
-      local px = (self.x - 1) * map.tilewidth
-      local py = (self.y - 1) * map.tileheight
-      love.graphics.draw(img, tile.quad, px, py)
-    end
-  end,
-  update = function(self, dt)
-    -- expand as needed
-  end,
-}
+    
+  local tile = map.tiles[self.gid]
+	local img = map.tilesets[tile.tileset].image
+  love.graphics.draw(img, tile.quad, cursor.tileX,cursor.tileY) 
+  end
 
--- Define other troops similarly here...
+
+  }
+troops.bazooka = {
+    health = 1,
+    damage = 3,
+    range = 2,
+    movement = 1,
+    selected = false,
+    color = nil,
+
+
+   
+  }
+
+
+troops.truck = {
+    health = 5,
+    damage = 0,
+    range = 1,
+    movement = 3,
+    power = 1,
+    selected = false,
+    color = nil,
+  }
+  troops.supply_truck = {
+    health = 5,
+    damage = 0,
+    range = 1,
+    movement = 3,
+    power = 1,
+    selected = false,
+    color = nil,
+
+  }
+  troops.carrier = {
+    health = 8,
+    damage = 0, 
+    range = 1,
+    movement = 2,
+    power = 1,
+    selected = false,
+    color = nil,
+  }
+  troops.tank = {
+    health = 8,
+    damage = 5,
+    range = 2,
+    movement = 2,
+    power = 1,
+    selected = false,
+    color = nil,
+
+  }
+  troops.artillery = {
+    health = 5,
+    damage = 3,
+    range  = 5,
+    movement = 1,
+    power = 1,
+    selected = false,
+    color = nil,
+
+
+
+  }
 
 return troops
