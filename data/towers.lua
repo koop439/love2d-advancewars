@@ -1,18 +1,14 @@
-local troops = require("data/troops")
-local ui = require("mechanics/ui")
-local tools = require("mechanics/tools")
+local troops        = require("data/troops")
+local ui            = require("mechanics/ui")
+local tools         = require("mechanics/tools")
+
 local default_spawn = function(self, x, y, color)
-	self.x = x
-	self.y = y
-	self.color = color
+  self.x, self.y, self.color = x, y, color
 end
 
- show_preview = false
-local id = nil
-local capital_color = nil
-local troop = nil
-local enough_money = nil
-local can_spawn = false
+local show_preview, enough_money, can_spawn = false, false, false
+local id, troop_key, capital_color
+
 local capital_ui =  function(self, loveframes)
 		local frame = loveframes.Create("frame")
 		frame:SetName("Buildings")
@@ -34,22 +30,16 @@ local capital_ui =  function(self, loveframes)
 			local button = loveframes.Create("button")
 			button:SetText("Spawn Shotgun")
 			button:SetHeight(30) 
-      button.OnClick = function(color)
-    	print("Preparing to spawn shotgun")
-    if ui.resources.money - troops.shotgun.cost >= 0 then
-      enough_money = true
-    else
-      enough_money = false
-    end
+      button.OnClick = function()
+  enough_money = (ui.resources.money >= troops.shotgun.cost)
+  if not enough_money then return end
 
-    show_preview = true
-    if enough_money and show_preview then
-      can_spawn    = true 
-    end
-    id = troops.shotgun.gid
-    capital_color = towers.capital.color
-    troop = "shotgun"
-    end
+  show_preview    = true
+  can_spawn       = true
+  id              = troops.shotgun.gid
+  troop_key       = "shotgun"
+  capital_color   = towers.capital.color
+end
 
 			list:AddItem(button)
 		end
@@ -74,17 +64,42 @@ function towers.drawpreview()
     tools.preview(id, capital_color)
   end
   if can_spawn then
-   tools.draw() 
+    tools.draw()
   end
 end
 
-
-function towers.update()
-if can_spawn then 
-    tools.spawn(get_valid_spawn_tiles(towers.capital.x, towers.capital.y, towers.capital.range,selectable_lookup ), troop, id, capital_color, enough_money)
+local function get_valid_spawn_tiles(origin_x, origin_y, range, selectable)
+  local valid = {}
+  for dy = -range, range do
+    for dx = -range, range do
+      local tx, ty = origin_x + dx, origin_y + dy
+      if (dx~=0 or dy~=0)
+        and selectable[ty] and selectable[ty][tx]
+      then
+        table.insert(valid, { x=tx, y=ty })
+      end
     end
+  end
+  return valid
 end
 
+function towers.update()
+  if not can_spawn then return end
+
+  local tiles = get_valid_spawn_tiles(
+    towers.capital.x,
+    towers.capital.y,
+    towers.capital.range,
+    selectable_lookup
+  )
+
+  -- Attempt spawn; this will deduct money & add to active_troops
+  tools.spawn(tiles, troop_key, id, capital_color, enough_money)
+
+  -- Reset flags
+  can_spawn    = false
+  show_preview = false
+end
 return towers 
 
 
