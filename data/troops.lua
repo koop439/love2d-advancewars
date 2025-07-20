@@ -11,7 +11,7 @@ troops.shotgun = {
     selected = false,
     color = nil,
     gid = 107,
-    cost = 505,
+    cost = 400,
     spawn = function(self, color)
     if color == "gray" then
       self.gid = 106

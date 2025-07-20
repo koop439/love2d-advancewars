@@ -17,7 +17,9 @@ function love.keypressed(k)
   if k == "return" then
     to_select()
   end
-  if k == "space" and show_previe2 then
+  if k == "space" then
+    print("shot")
+    towers.update()
    
   end
 

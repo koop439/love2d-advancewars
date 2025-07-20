@@ -56,4 +56,5 @@ function cursor.draw()
   love.graphics.draw(cursor.image, cursor.pixelX, cursor.pixelY)
 end
 
+
 return cursor

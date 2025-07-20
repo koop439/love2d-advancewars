@@ -11,6 +11,8 @@ end
 local id = nil
 local capital_color = nil
 local troop = nil
+local enough_money = nil
+local can_spawn = false
 local capital_ui =  function(self, loveframes)
 		local frame = loveframes.Create("frame")
 		frame:SetName("Buildings")
@@ -36,8 +38,14 @@ local capital_ui =  function(self, loveframes)
     	print("Preparing to spawn shotgun")
     if ui.resources.money - troops.shotgun.cost >= 0 then
       enough_money = true
+    else
+      enough_money = false
     end
+
     show_preview = true
+    if enough_money and show_preview then
+      can_spawn    = true 
+    end
     id = troops.shotgun.gid
     capital_color = towers.capital.color
     troop = "shotgun"
@@ -65,12 +73,15 @@ function towers.drawpreview()
   if show_preview then
     tools.preview(id, capital_color)
   end
+  if can_spawn then
+   tools.draw() 
+  end
 end
 
 
 function towers.update()
 if can_spawn then 
-    tools.spawn(get_valid_spawn_tiles(towers.capital.x, towers.capital.y, towers.capital.range,selectable_lookup ), troop, id, capital_color)
+    tools.spawn(get_valid_spawn_tiles(towers.capital.x, towers.capital.y, towers.capital.range,selectable_lookup ), troop, id, capital_color, enough_money)
     end
 end
 

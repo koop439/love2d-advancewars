@@ -1,5 +1,6 @@
 local cursor = require("mechanics/cursor_movement")
 local troops = require("data/troops")
+local ui = require("mechanics/ui")
 local tools = {}
 
 
@@ -33,7 +34,7 @@ tools.preview = function(id, color)
 end
 
 
-tools.spawn = function(valid_tiles, troop, id, color)
+tools.spawn = function(valid_tiles, troop, id, color, enough_money)
   
   can_spawn = false
      if color == "gray" then
@@ -52,8 +53,9 @@ tools.spawn = function(valid_tiles, troop, id, color)
 	local img = map.tilesets[tiler.tileset].image
 
 	for _, tile in ipairs(valid_tiles) do
-    if cursor.tileX == tile.tx and cursor.tileY == tile.ty then
+    if cursor.tileX == tile.x and cursor.tileY == tile.y and enough_money then
       can_spawn = true
+      ui.resources.money = ui.resources.money - troops[troop].cost
       break
     end
 	end
@@ -63,7 +65,7 @@ tools.spawn = function(valid_tiles, troop, id, color)
 	local new_troop = {}
 	setmetatable(new_troop, { __index = base })
 
- new_troop.tools.troopset(new_troop,tiler,img,cursor.tileX,cursor.tileY) 
+ tools.troopset(new_troop,tiler,img,cursor.tileX,cursor.tileY) 
 	table.insert(active_troops, new_troop)
 end
 
