@@ -1,107 +1,95 @@
+-- mechanics/tools.lua
+
 local cursor = require("mechanics/cursor_movement")
 local troops = require("data/troops")
-local ui = require("mechanics/ui")
+local ui     = require("mechanics/ui")
+
 local tools = {}
+
+-- how many tiles per row in your troops tileset
+local TILES_PER_ROW = 18
 
 local colorOffsets = {
   gray   = 0,
-  green  = 18,
-  blue   = 18 * 2,
-  red    = 18 * 3,
-  yellow = 18 * 4,
+  green  = 1 * TILES_PER_ROW,
+  blue   = 2 * TILES_PER_ROW,
+  red    = 3 * TILES_PER_ROW,
+  yellow = 4 * TILES_PER_ROW,
 }
 
-tools.preview = function(id, color)
-  if id and color then
-    local tilex, tiley = cursor.tileX + 1, cursor.tileY + 1
-    local px = (tilex - 1) * map.tilewidth
-    local py= (tiley - 1) * map.tileheight
-    
-     if color == "gray" then
-      id = id
-    elseif color == "green" then
-      id  = id + 18
-    elseif color == "blue" then
-      id  = id + 18*2
-    elseif color == "red" then
-      id = id + 18*3
-    elseif color == "yellow" then
-      id  = id + 18*4
-    end
-    
-    local tile = map.tiles[id]
-    local img = map.tilesets[tile.tileset].image
-    local preview_img, quad = img, tile.quad
-    if preview_img then
-      love.graphics.setColor(1, 1, 1, 1) -- half-transparent preview
-			love.graphics.draw(preview_img, quad, px, py)
+-- Draws a transparent preview of the unit under the cursor
+function tools.preview(base_gid, color)
+  if not base_gid or not color then return end
 
-    end
-  end 
+  -- apply color offset
+  local offset = colorOffsets[color] or 0
+  local gid    = base_gid + offset
+
+  -- cursor.tileX/Y are 0-based, map.tiles is 1-based
+  local tilex, tiley = cursor.tileX + 1, cursor.tileY + 1
+  local px = (tilex - 1) * map.tilewidth
+  local py = (tiley - 1) * map.tileheight
+
+  local tile = map.tiles[gid]
+  if not tile then return end
+  local img  = map.tilesets[tile.tileset].image
+
+  love.graphics.setColor(1, 1, 1, 0.5)
+  love.graphics.draw(img, tile.quad, px, py)
+  love.graphics.setColor(1, 1, 1, 1)
 end
 
-
-tools.spawn = function(valid_tiles, troopKey, gid, color, enough_money)
-    print("⮕ tools.spawn called", "gid=", gid, "color=", color, "troopKey=", troopKey)
-  if not gid then
-    print("ERROR: nil gid in tools.spawn for", troopKey)
+-- Attempts to spawn a unit on the tile under the cursor
+-- valid_tiles: array of { x=1-based, y=1-based } tile coords
+-- key:          string key into troops (e.g. "shotgun")
+-- base_gid:     integer GID for gray version
+-- color:        string color name
+-- has_money:    boolean: ui.resources.money >= cost
+function tools.spawn(valid_tiles, key, base_gid, color, has_money)
+  if not has_money or not key or not base_gid or not color then
     return
   end
 
-  -- pick offset safely
+  -- compute actual GID based on color
   local offset = colorOffsets[color] or 0
-  local spawn_id = gid + offset
+  local gid    = base_gid + offset
 
-print("   spawn_id →", spawn_id, "map.tiles[spawn_id] →", map.tiles[spawn_id])
-  if not map.tiles[spawn_id] then
-    error("No tile at that GID! spawn_id is out of range or nil.")
-  end
-
-  local tiler = map.tiles[spawn_id]
-  print("   tiler.tileset →", tiler.tileset,
-        "map.tilesets[tiler.tileset] →", map.tilesets[tiler.tileset])
-
-
+  -- convert cursor to 1-based for comparison
+  local cx, cy = cursor.tileX + 1, cursor.tileY + 1
 
   for _, t in ipairs(valid_tiles) do
-    -- align 0-based cursor with 1-based tile coords
-    if cursor.tileX == t.x - 1 and cursor.tileY == t.y - 1 then
-      -- deduction
-      ui.resources.money = ui.resources.money - troops[troopKey].cost
+    if t.x == cx and t.y == cy then
+      -- deduct cost
+      ui.resources.money = ui.resources.money - troops[key].cost
 
-      -- instantiate
-      local base      = troops[troopKey]
-      local new_unit  = {}
-      setmetatable(new_unit, { __index = base })
-      tools.troopset(new_unit, map.tiles[spawn_id],
-                     map.tilesets[map.tiles[spawn_id].tileset].image,
-                     cursor.tileX, cursor.tileY)
+      -- instantiate new unit
+      local base     = troops[key]
+      local new_unit = setmetatable({}, { __index = base })
 
+      -- record tile data and image
+      local tile = map.tiles[gid]
+      new_unit.tile = tile
+      new_unit.img  = map.tilesets[tile.tileset].image
+
+      -- convert tile coords to pixel coords
+      new_unit.x = (cx - 1) * map.tilewidth
+      new_unit.y = (cy - 1) * map.tileheight
+
+      -- insert into your global active_troops
+      active_troops = active_troops or {}
       table.insert(active_troops, new_unit)
-      print("✅ spawned:", troopKey, "now have", #active_troops, "troops")
       return
     end
   end
 end
 
+-- Draws all troops that have been spawned
+function tools.draw()
+  if not active_troops then return end
 
-
-tools.draw = function()
-print("tools.draw → drawing", #active_troops, "troops")
-  for _, troop in ipairs(active_troops) do 
-    love.graphics.draw(troop.img, troop.tile.quad, troop.x, troop.y)
-end
-end
-
-tools.troopset = function(self, tile, img, x, y)
-    self.tile = tile
-    self.img = img 
-    self.x = x
-    self.y = y
-    
-
+  for _, u in ipairs(active_troops) do
+    love.graphics.draw(u.img, u.tile.quad, u.x, u.y)
   end
+end
+
 return tools
-
-
-
