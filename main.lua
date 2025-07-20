@@ -10,16 +10,15 @@ require("mechanics/spawning")
 require("mechanics.activeUnits")
 local active_units = require("mechanics/activeunits")
 map = sti("maps/Tutorial.lua") 
+local tools = require("mechanics/tools")
 
 function love.keypressed(k)
 
   if k == "return" then
     to_select()
   end
-  if k == "space" and pending_spawn then
-    local tx, ty = cursor.tileX, cursor.tileY
-    active_units.spawn(pending_spawn, tx, ty)
-    pending_spawn = nil
+  if k == "space" and show_previe2 then
+   
   end
 
   end
@@ -66,8 +65,8 @@ function love.draw()
   if_selected(selectable_lookup)
 active_units.draw_all()
   cursor.draw()
-
-  draw_preview(107)
+  towers.drawpreview()
+  tools.draw()
  cam:detach()
 --Ui draws the top right 
   ui.gui.draw()

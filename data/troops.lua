@@ -10,7 +10,8 @@ troops.shotgun = {
     movement = 2,
     selected = false,
     color = nil,
-    gid = 106,
+    gid = 107,
+    cost = 505,
     spawn = function(self, color)
     if color == "gray" then
       self.gid = 106
@@ -55,6 +56,7 @@ troops.bazooka = {
     movement = 1,
     selected = false,
     color = nil,
+
 
 
    
