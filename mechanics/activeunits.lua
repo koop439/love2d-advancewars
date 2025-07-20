@@ -1,33 +1,19 @@
-active_units = {}
+local active_units = {}
+active_units.list = {}
 
-local unit_mt = {}
-unit_mt.__index = unit_mt
-
-function unit_mt:new(x, y, sprite, draw_fn, update_fn)
-  local obj = {
-    x = x,
-    y = y,
-    sprite = sprite, -- could be the GID or tile data
-    draw = draw_fn,
-    update = update_fn,
-  }
-  return setmetatable(obj, unit_mt)
-end
-
-function active_units.spawn(troop, x, y)
-  local unit = unit_mt:new(x, y, troop.sprite, troop.draw, troop.update)
-  table.insert(active_units, unit)
+function active_units.spawn(u)
+  table.insert(active_units.list, u)
 end
 
 function active_units.draw_all()
-  for _, unit in ipairs(active_units) do
-    unit:draw()
+  for _, u in ipairs(active_units.list) do
+    love.graphics.draw(u.img, u.tile.quad, u.x, u.y)
   end
 end
 
 function active_units.update_all(dt)
-  for _, unit in ipairs(active_units) do
-    unit:update(dt)
+  for _, u in ipairs(active_units.list) do
+    if u.update then u:update(dt) end
   end
 end
 
